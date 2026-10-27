@@ -1,0 +1,177 @@
+[
+  {
+    "id": 1,
+    "name": "A Light in the Attic (Ciltli)",
+    "price": 1932.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/1"
+  },
+  {
+    "id": 2,
+    "name": "Tipping the Velvet",
+    "price": 2322.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/2"
+  },
+  {
+    "id": 3,
+    "name": "Soumission",
+    "price": 1681.21,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/3"
+  },
+  {
+    "id": 4,
+    "name": "Sharp Objects - Roman",
+    "price": 1764.35,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/4"
+  },
+  {
+    "id": 5,
+    "name": "Sapiens: A Brief History",
+    "price": 2024.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/5"
+  },
+  {
+    "id": 6,
+    "name": "The Requiem Red",
+    "price": 972.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/6"
+  },
+  {
+    "id": 7,
+    "name": "The Dirty Little Secrets of Getting Your Dream Job",
+    "price": 1242.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/7"
+  },
+  {
+    "id": 8,
+    "name": "The Coming Woman: A Novel",
+    "price": 810.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/8"
+  },
+  {
+    "id": 9,
+    "name": "The Boys in the Boat",
+    "price": 798.27,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/9"
+  },
+  {
+    "id": 10,
+    "name": "The Black Maria",
+    "price": 2268.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/10"
+  },
+  {
+    "id": 11,
+    "name": "Starving Hearts (Triangular Trade Trilogy)",
+    "price": 506.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/11"
+  },
+  {
+    "id": 12,
+    "name": "Shakespeare's Sonnets",
+    "price": 821.71,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/12"
+  },
+  {
+    "id": 13,
+    "name": "Set Me Free",
+    "price": 644.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/13"
+  },
+  {
+    "id": 14,
+    "name": "Scott Pilgrim's Precious Little Life",
+    "price": 2268.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/14"
+  },
+  {
+    "id": 15,
+    "name": "Rip it Up and Start Again",
+    "price": 1288.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/15"
+  },
+  {
+    "id": 16,
+    "name": "Our Band Could Be Your Life",
+    "price": 2484.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/16"
+  },
+  {
+    "id": 17,
+    "name": "Olio Şiir Kitabı",
+    "price": 874.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/17"
+  },
+  {
+    "id": 18,
+    "name": "Mesa Selimovic - Death and the Dervish",
+    "price": 712.33,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/18"
+  },
+  {
+    "id": 19,
+    "name": "Frankenstein",
+    "price": 1426.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/19"
+  },
+  {
+    "id": 20,
+    "name": "Forever and Forever",
+    "price": 1142.03,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/20"
+  },
+  {
+    "id": 21,
+    "name": "Emma",
+    "price": 1242.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/21"
+  },
+  {
+    "id": 22,
+    "name": "Alice in Wonderland",
+    "price": 2430.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/22"
+  },
+  {
+    "id": 23,
+    "name": "Ajin: Demi-Human, Volume 1",
+    "price": 1610.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/23"
+  },
+  {
+    "id": 24,
+    "name": "A Spy's Alone",
+    "price": 2214.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/24"
+  },
+  {
+    "id": 25,
+    "name": "1,000 Places to See Before You Die",
+    "price": 1012.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/25"
+  }
+]
