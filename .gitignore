@@ -1,0 +1,19 @@
+# Ortam değişkenleri ve hassas bilgiler
+.env
+
+# Veritabanı dosyaları
+*.db
+*.sqlite3
+
+# Python / Sanal Ortamlar
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE ve geçici dosyalar
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

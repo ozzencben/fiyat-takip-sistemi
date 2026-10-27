@@ -7,7 +7,18 @@ authors = [
     { name = "Özenç Dönmezer", email = "ozzencben@gmail.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "apscheduler>=3.11.3",
+    "beautifulsoup4>=4.15.0",
+    "fastapi>=0.162.0",
+    "httpx>=0.28.1",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.0",
+    "python-dotenv>=1.2.4",
+    "rapidfuzz>=3.14.6",
+    "sqlalchemy>=2.1.6",
+    "uvicorn>=0.54.0",
+]
 
 [project.scripts]
 fiyat-takip-sistemi = "fiyat_takip_sistemi:main"

@@ -1,0 +1,1 @@
+# günlük akışı çalıştıran ana dosya
