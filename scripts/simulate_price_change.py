@@ -10,3 +10,4 @@ from fiyat_takip_sistemi.scripts.simulate_price_change import simulate_price_dro
 if __name__ == "__main__":
     count = random.choice([5, 6])
     simulate_price_drop(count)
+
