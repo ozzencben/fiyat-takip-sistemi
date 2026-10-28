@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "A Light in the Attic (Ciltli)",
-    "price": 1932.0,
+    "price": 1790.48,
     "in_stock": true,
     "url": "http://localhost:8001/products/1"
   },
@@ -65,14 +65,14 @@
   {
     "id": 10,
     "name": "The Black Maria",
-    "price": 2268.0,
+    "price": 1928.36,
     "in_stock": true,
     "url": "http://localhost:8001/products/10"
   },
   {
     "id": 11,
     "name": "Starving Hearts (Triangular Trade Trilogy)",
-    "price": 506.0,
+    "price": 430.3,
     "in_stock": true,
     "url": "http://localhost:8001/products/11"
   },
@@ -142,21 +142,21 @@
   {
     "id": 21,
     "name": "Emma",
-    "price": 1242.0,
+    "price": 1147.36,
     "in_stock": true,
     "url": "http://localhost:8001/products/21"
   },
   {
     "id": 22,
     "name": "Alice in Wonderland",
-    "price": 2430.0,
+    "price": 2290.85,
     "in_stock": true,
     "url": "http://localhost:8001/products/22"
   },
   {
     "id": 23,
     "name": "Ajin: Demi-Human, Volume 1",
-    "price": 1610.0,
+    "price": 1480.35,
     "in_stock": true,
     "url": "http://localhost:8001/products/23"
   },

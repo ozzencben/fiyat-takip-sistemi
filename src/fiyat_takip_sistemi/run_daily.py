@@ -10,6 +10,7 @@ if hasattr(sys.stdout, "reconfigure"):
 from .core.db import SessionLocal
 from .core.matching import run_product_matching
 from .core.models import Competitor, Match, PriceSnapshot, Product
+from .core.rules import evaluate_rules, print_alerts_summary
 from .adapters.books_toscrape import BooksToScrapeAdapter, save_snapshots_to_db as save_books_snapshots
 from .adapters.fake_store import FakeStoreAdapter, save_snapshots_to_db as save_fake_store_snapshots
 
@@ -167,9 +168,12 @@ def main() -> None:
         print("\n" + "-" * 80)
         print(f"📈 [GÜN SONU ÖZETİ]")
         print(f"  • İncelenen Ürün Sayısı        : {toplam_urun}")
-        print(f"  • Rakiplerin Daha Ucuz Olduğu : {rakip_ucuz_sayisi} ürün (Uyarı: RAKİP UCUZ)")
-        print(f"  • Bizim Daha Avantajlı Olduğumuz: {toplam_urun - rakip_ucuz_sayisi} ürün")
-        print("-" * 80 + "\n")
+        # 4. Kural Motorunu Çalıştır ve Uyarıları Bas (Kılavuz Gün 2)
+        print("\n" + "=" * 80)
+        print("🧠 [ADIM 4] KURAL MOTORU DEĞERLENDİRMESİ VE AKSIYONLAR")
+        print("=" * 80)
+        alerts = evaluate_rules(session)
+        print_alerts_summary(alerts)
 
     finally:
         session.close()
