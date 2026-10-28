@@ -9,7 +9,8 @@ DATA_DIR = Path("data")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 EXCEL_PATH = DATA_DIR / "urunlerim.xlsx"
 
-# books.toscrape.com'daki gerçek kitaplar baz alınarak hazırlandı.
+# books.toscrape.com'daki gerçek kitaplar (25 adet) ve webscraper.io'daki
+# elektronik ürünler (10 adet) baz alınarak hazırlandı.
 # Eşleştirme algoritmasını (rapidfuzz) test etmek için bazı isimler hafifçe manipüle edildi.
 SAMPLE_PRODUCTS = [
     {
@@ -185,6 +186,80 @@ SAMPLE_PRODUCTS = [
         "urun_adi": "1,000 Places to See Before You Die",
         "fiyat": 1100.0,
         "maliyet": 750.0,
+        "min_marj_yuzde": 20.0,
+    },
+    # -------------------------------------------------------------------------
+    # Kılavuz Gün 2 (19:30-22:00): Rakip B (webscraper.io) ile eşleşecek
+    # 10 Elektronik Ürün (1 $ = 35 TL baz alınarak fiyatlandırıldı)
+    # -------------------------------------------------------------------------
+    {
+        "sku": "EL-001",
+        "urun_adi": "Lenovo IdeaTab (7 inç Android)",  # Sitede: Lenovo IdeaTab ($69.99 -> 2449.65 TL)
+        "fiyat": 2550.0,
+        "maliyet": 1800.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-002",
+        "urun_adi": "IdeaTab A3500L",  # Sitede: IdeaTab A3500L ($88.99 -> 3114.65 TL)
+        "fiyat": 3100.0,
+        "maliyet": 2200.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-003",
+        "urun_adi": "Acer Iconia (16GB Tablet)",  # Sitede: Acer Iconia ($96.99 -> 3394.65 TL)
+        "fiyat": 3500.0,
+        "maliyet": 2500.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-004",
+        "urun_adi": "Iconia B1-730HD",  # Sitede: Iconia B1-730HD ($99.99 -> 3499.65 TL)
+        "fiyat": 3600.0,
+        "maliyet": 2600.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-005",
+        "urun_adi": "Memo Pad HD 7",  # Sitede: Memo Pad HD 7 ($101.99 -> 3569.65 TL)
+        "fiyat": 3650.0,
+        "maliyet": 2650.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-006",
+        "urun_adi": "Asus MeMO Pad",  # Sitede: Asus MeMO Pad ($102.99 -> 3604.65 TL)
+        "fiyat": 3550.0,
+        "maliyet": 2550.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-007",
+        "urun_adi": "Amazon Kindle",  # Sitede: Amazon Kindle ($103.99 -> 3639.65 TL)
+        "fiyat": 3750.0,
+        "maliyet": 2700.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-008",
+        "urun_adi": "IdeaTab A8-50",  # Sitede: IdeaTab A8-50 ($121.99 -> 4269.65 TL)
+        "fiyat": 4400.0,
+        "maliyet": 3100.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-009",
+        "urun_adi": "iPad Mini Retina (Wi-Fi)",  # Sitede: iPad Mini Retina ($537.99 -> 18829.65 TL)
+        "fiyat": 19200.0,
+        "maliyet": 14500.0,
+        "min_marj_yuzde": 20.0,
+    },
+    {
+        "sku": "EL-010",
+        "urun_adi": "Apple iPad Air",  # Sitede: Apple iPad Air ($603.99 -> 21139.65 TL)
+        "fiyat": 21500.0,
+        "maliyet": 16000.0,
         "min_marj_yuzde": 20.0,
     },
 ]

@@ -1,6 +1,5 @@
 import sys
 import time
-from datetime import datetime
 from typing import Any, Dict, List
 from urllib.parse import urljoin
 
@@ -12,8 +11,15 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from ..core.db import SessionLocal
-from ..core.models import Competitor, PriceSnapshot
-from .base import BaseAdapter
+from ..core.logger import get_logger
+from ..core.models import PriceSnapshot
+from .base import (
+    BaseAdapter,
+    parse_and_validate_price,
+    save_validated_snapshots_to_db,
+)
+
+logger = get_logger("books_toscrape")
 
 # Kılavuz gereksinimi: Demo için sabit kur çarpanı (1 £ = 40 TL)
 KUR_GBP_TL: float = 40.0
@@ -47,14 +53,7 @@ class BooksToScrapeAdapter(BaseAdapter):
             resp = self.client.get(robots_url)
             print(f"[Robots.txt] Durum Kodu: {resp.status_code}")
         except Exception as e:
-            print(f"[Robots.txt] Kontrol edilirken uyarı: {e}")
-
-    def _clean_price(self, raw_price: str) -> float:
-        """
-        Fiyat metnindeki para birimi işaretlerini (£, Â vb.) temizler ve float döndürür.
-        """
-        cleaned = raw_price.replace("£", "").replace("Â", "").replace(",", ".").strip()
-        return float(cleaned)
+            logger.warning(f"[Robots.txt] Kontrol edilirken uyarı: {e}")
 
     def _fetch_page_with_retry(self, url: str, max_retries: int = 3) -> str | None:
         """
@@ -64,11 +63,14 @@ class BooksToScrapeAdapter(BaseAdapter):
             try:
                 resp = self.client.get(url)
                 if resp.status_code == 200:
-                    # UTF-8 karakter kodlaması güvencesi
                     return resp.content.decode("utf-8", errors="replace")
-                print(f"Uyarı: {url} -> HTTP {resp.status_code} (Deneme {attempt}/{max_retries})")
+                logger.warning(
+                    f"Sayfa hatası: {url} -> HTTP {resp.status_code} (Deneme {attempt}/{max_retries})"
+                )
             except Exception as e:
-                print(f"Hata: {url} çekilemedi: {e} (Deneme {attempt}/{max_retries})")
+                logger.warning(
+                    f"Bağlantı hatası: {url} çekilemedi: {e} (Deneme {attempt}/{max_retries})"
+                )
 
             if attempt < max_retries:
                 time.sleep(self.request_delay * attempt)
@@ -77,7 +79,7 @@ class BooksToScrapeAdapter(BaseAdapter):
     def fetch_products(self, max_pages: int = 5) -> List[Dict[str, Any]]:
         """
         Belirtilen sayfa adedi kadar dolaşarak ürünleri toplar.
-        Kılavuz gereksinimi: En az 1 saniye bekleme, name, price (TL), in_stock, url döndürme.
+        Sayfa açılmazsa, fiyat bulunamazsa veya 0/negatif çıkarsa kaydı atlar ve loglar.
         """
         self.check_robots_txt()
         products: List[Dict[str, Any]] = []
@@ -90,44 +92,57 @@ class BooksToScrapeAdapter(BaseAdapter):
 
             html_content = self._fetch_page_with_retry(page_url)
             if not html_content:
-                print(f"⚠️ Sayfa {page} alınamadı, sonraki sayfaya geçiliyor.")
+                logger.warning(f"[{self.competitor_name}] Sayfa {page} açılamadığı için atlandı: {page_url}")
                 continue
 
             soup = BeautifulSoup(html_content, "html.parser")
             pods = soup.select("article.product_pod")
 
             for pod in pods:
-                # Başlık: h3 a etiketinin title attribute'u tam adı verir
                 title_elem = pod.select_one("h3 a")
-                name = title_elem["title"].strip() if title_elem and "title" in title_elem.attrs else "Bilinmeyen Kitap"
+                name = (
+                    title_elem["title"].strip()
+                    if title_elem and "title" in title_elem.attrs
+                    else (title_elem.text.strip() if title_elem else "")
+                )
+                if not name:
+                    logger.warning(f"[{self.competitor_name}] Ürün başlığı bulunamadığı için kayıt atlandı.")
+                    continue
 
-                # URL: relative bağlantıyı tam URL'ye çevir
                 href = title_elem["href"].strip() if title_elem and "href" in title_elem.attrs else ""
                 full_url = urljoin(page_url, href)
 
-                # Fiyat: p.price_color içindedir
                 price_elem = pod.select_one("p.price_color")
-                raw_price_str = price_elem.text.strip() if price_elem else "0"
-                gbp_price = self._clean_price(raw_price_str)
-                tl_price = round(gbp_price * self.exchange_rate, 2)
+                raw_price_str = price_elem.text.strip() if price_elem else None
 
-                # Stok Durumu: p.instock.availability içindeki metin
+                tl_price = parse_and_validate_price(
+                    raw_price_str,
+                    multiplier=self.exchange_rate,
+                    product_name=name,
+                    source_name=self.competitor_name,
+                )
+                if tl_price is None:
+                    continue
+
                 stock_elem = pod.select_one("p.instock.availability")
                 in_stock = ("in stock" in stock_elem.text.lower()) if stock_elem else True
 
                 products.append({
                     "name": name,
                     "price": tl_price,
-                    "raw_gbp_price": gbp_price,
                     "in_stock": in_stock,
                     "url": full_url,
                 })
 
-            # Kılavuz gereksinimi: İstekler arasında en az 1 saniye bekle
             if page < max_pages:
                 time.sleep(self.request_delay)
 
-        print(f"✓ Toplam {len(products)} ürün başarıyla çekildi.")
+        if not products:
+            raise RuntimeError(
+                f"{self.competitor_name} üzerinden hiçbir geçerli ürün çekilemedi."
+            )
+
+        print(f"✓ Toplam {len(products)} geçerli ürün başarıyla çekildi.")
         return products
 
     def close(self):
@@ -136,58 +151,26 @@ class BooksToScrapeAdapter(BaseAdapter):
 
 def save_snapshots_to_db(db: Session, scraped_products: List[Dict[str, Any]]) -> int:
     """
-    Çekilen ürünleri price_snapshots tablosuna kaydeder.
+    Çekilen ürünleri doğrulama ve aynı gün mükerrer kayıt engelleme ile price_snapshots tablosuna kaydeder.
     """
-    competitor = db.query(Competitor).filter(Competitor.ad == BooksToScrapeAdapter.COMPETITOR_NAME).first()
-    if not competitor:
-        competitor = Competitor(
-            ad=BooksToScrapeAdapter.COMPETITOR_NAME,
-            base_url=BooksToScrapeAdapter.BASE_URL,
-        )
-        db.add(competitor)
-        db.commit()
-        db.refresh(competitor)
-
-    now = datetime.utcnow()
-    snapshots = [
-        PriceSnapshot(
-            competitor_id=competitor.id,
-            ham_urun_adi=item["name"],
-            url=item["url"],
-            fiyat=item["price"],
-            stokta=item["in_stock"],
-            cekilme_zamani=now,
-        )
-        for item in scraped_products
-    ]
-
-    db.add_all(snapshots)
-    db.commit()
-    return len(snapshots)
+    return save_validated_snapshots_to_db(
+        db=db,
+        competitor_name=BooksToScrapeAdapter.COMPETITOR_NAME,
+        base_url=BooksToScrapeAdapter.BASE_URL,
+        scraped_products=scraped_products,
+    )
 
 
 if __name__ == "__main__":
     adapter = BooksToScrapeAdapter()
     try:
         scraped = adapter.fetch_products(max_pages=5)
-        
         session = SessionLocal()
         try:
             saved_count = save_snapshots_to_db(session, scraped)
             total_snapshots = session.query(PriceSnapshot).count()
             print(f"✓ price_snapshots tablosuna {saved_count} yeni kayıt yazıldı.")
             print(f"✓ Tablodaki toplam snapshot sayısı: {total_snapshots}")
-
-            # Örnek ilk 3 kaydı göster
-            print("\nÖrnek Fiyat Kayıtları (İlk 3 Ürün):")
-            sample = (
-                session.query(PriceSnapshot)
-                .order_by(PriceSnapshot.id.desc())
-                .limit(3)
-                .all()
-            )
-            for s in reversed(sample):
-                print(f"  • {s.ham_urun_adi} -> {s.fiyat} TL | Stokta: {s.stokta} | URL: {s.url}")
         finally:
             session.close()
     finally:

@@ -173,5 +173,75 @@
     "price": 1012.0,
     "in_stock": true,
     "url": "http://localhost:8001/products/25"
+  },
+  {
+    "id": 26,
+    "name": "Lenovo IdeaTab (7 inç Android)",
+    "price": 2490.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/26"
+  },
+  {
+    "id": 27,
+    "name": "IdeaTab A3500L",
+    "price": 3180.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/27"
+  },
+  {
+    "id": 28,
+    "name": "Acer Iconia (16GB Tablet)",
+    "price": 3420.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/28"
+  },
+  {
+    "id": 29,
+    "name": "Iconia B1-730HD",
+    "price": 3520.0,
+    "in_stock": false,
+    "url": "http://localhost:8001/products/29"
+  },
+  {
+    "id": 30,
+    "name": "Memo Pad HD 7",
+    "price": 3690.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/30"
+  },
+  {
+    "id": 31,
+    "name": "Asus MeMO Pad",
+    "price": 3490.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/31"
+  },
+  {
+    "id": 32,
+    "name": "Amazon Kindle",
+    "price": 3680.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/32"
+  },
+  {
+    "id": 33,
+    "name": "IdeaTab A8-50",
+    "price": 4310.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/33"
+  },
+  {
+    "id": 34,
+    "name": "iPad Mini Retina (Wi-Fi)",
+    "price": 18950.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/34"
+  },
+  {
+    "id": 35,
+    "name": "Apple iPad Air",
+    "price": 21250.0,
+    "in_stock": true,
+    "url": "http://localhost:8001/products/35"
   }
 ]

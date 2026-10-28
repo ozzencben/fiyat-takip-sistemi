@@ -1,5 +1,4 @@
 import sys
-from datetime import datetime
 from typing import Any, Dict, List
 from urllib.parse import urljoin
 
@@ -11,8 +10,15 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from ..core.db import SessionLocal
-from ..core.models import Competitor, PriceSnapshot
-from .base import BaseAdapter
+from ..core.logger import get_logger
+from ..core.models import PriceSnapshot
+from .base import (
+    BaseAdapter,
+    parse_and_validate_price,
+    save_validated_snapshots_to_db,
+)
+
+logger = get_logger("fake_store")
 
 
 class FakeStoreAdapter(BaseAdapter):
@@ -30,26 +36,16 @@ class FakeStoreAdapter(BaseAdapter):
         self.products_url = f"{base_url.rstrip('/')}/products"
         self.client = httpx.Client(timeout=10.0)
 
-    def _clean_price(self, raw_price_text: str) -> float:
-        """
-        Fiyat metnindeki 'TL', para birimi ve boşlukları temizleyerek float değere çevirir.
-        """
-        cleaned = (
-            raw_price_text.replace("TL", "")
-            .replace("₺", "")
-            .replace(",", ".")
-            .strip()
-        )
-        return float(cleaned)
-
     def fetch_products(self) -> List[Dict[str, Any]]:
         """
         Sahte mağazadan /products sayfasını HTML olarak çeker ve ayrıştırır.
+        Sayfa açılmazsa, fiyat bulunamazsa veya 0/negatif çıkarsa kaydı atlar ve loglar.
         """
         try:
             resp = self.client.get(self.products_url)
             resp.raise_for_status()
         except Exception as e:
+            logger.error(f"[{self.competitor_name}] Sayfa açılamadı ({self.products_url}): {e}")
             raise ConnectionError(
                 f"Sahte mağazaya ({self.products_url}) bağlanılamadı. "
                 f"Lütfen 'fake_store/main.py' sunucusunun port 8001'de çalıştığından emin olun. Hata: {e}"
@@ -62,11 +58,21 @@ class FakeStoreAdapter(BaseAdapter):
         products: List[Dict[str, Any]] = []
         for card in cards:
             title_elem = card.select_one(".product-title")
-            name = title_elem.text.strip() if title_elem else "Bilinmeyen Ürün"
+            name = title_elem.text.strip() if title_elem else ""
+            if not name:
+                logger.warning(f"[{self.competitor_name}] Ürün başlığı boş olduğu için kart atlandı.")
+                continue
 
             price_elem = card.select_one(".product-price")
-            raw_price = price_elem.text.strip() if price_elem else "0"
-            price = self._clean_price(raw_price)
+            raw_price = price_elem.text.strip() if price_elem else None
+            price = parse_and_validate_price(
+                raw_price,
+                multiplier=1.0,
+                product_name=name,
+                source_name=self.competitor_name,
+            )
+            if price is None:
+                continue
 
             stock_elem = card.select_one(".product-stock")
             in_stock = ("stokta var" in stock_elem.text.lower()) if stock_elem else True
@@ -82,7 +88,12 @@ class FakeStoreAdapter(BaseAdapter):
                 "url": full_url,
             })
 
-        print(f"✓ {self.competitor_name} üzerinden {len(products)} ürün başarıyla çekildi.")
+        if not products:
+            raise RuntimeError(
+                f"{self.competitor_name} üzerinden hiçbir geçerli ürün çekilemedi."
+            )
+
+        print(f"✓ {self.competitor_name} üzerinden {len(products)} geçerli ürün başarıyla çekildi.")
         return products
 
     def close(self):
@@ -91,38 +102,14 @@ class FakeStoreAdapter(BaseAdapter):
 
 def save_snapshots_to_db(db: Session, scraped_products: List[Dict[str, Any]]) -> int:
     """
-    Çekilen sahte mağaza ürünlerini price_snapshots tablosuna kaydeder.
+    Çekilen sahte mağaza ürünlerini doğrulama ve aynı gün mükerrer kayıt engelleme ile price_snapshots tablosuna kaydeder.
     """
-    competitor = (
-        db.query(Competitor)
-        .filter(Competitor.ad == FakeStoreAdapter.COMPETITOR_NAME)
-        .first()
+    return save_validated_snapshots_to_db(
+        db=db,
+        competitor_name=FakeStoreAdapter.COMPETITOR_NAME,
+        base_url=FakeStoreAdapter.BASE_URL,
+        scraped_products=scraped_products,
     )
-    if not competitor:
-        competitor = Competitor(
-            ad=FakeStoreAdapter.COMPETITOR_NAME,
-            base_url=FakeStoreAdapter.BASE_URL,
-        )
-        db.add(competitor)
-        db.commit()
-        db.refresh(competitor)
-
-    now = datetime.utcnow()
-    snapshots = [
-        PriceSnapshot(
-            competitor_id=competitor.id,
-            ham_urun_adi=item["name"],
-            url=item["url"],
-            fiyat=item["price"],
-            stokta=item["in_stock"],
-            cekilme_zamani=now,
-        )
-        for item in scraped_products
-    ]
-
-    db.add_all(snapshots)
-    db.commit()
-    return len(snapshots)
 
 
 if __name__ == "__main__":
@@ -132,25 +119,7 @@ if __name__ == "__main__":
         session = SessionLocal()
         try:
             saved = save_snapshots_to_db(session, scraped)
-            total = (
-                session.query(PriceSnapshot)
-                .filter(PriceSnapshot.competitor_id == 2)
-                .count()
-            )
             print(f"✓ price_snapshots tablosuna {saved} yeni Rakip C kaydı yazıldı.")
-            print(f"✓ Veritabanındaki toplam Rakip C snapshot sayısı: {total}")
-
-            # Örnek ilk 3 kayıt
-            print("\nÖrnek Fiyat Kayıtları (İlk 3 Ürün):")
-            sample = (
-                session.query(PriceSnapshot)
-                .filter(PriceSnapshot.competitor_id == 2)
-                .order_by(PriceSnapshot.id.desc())
-                .limit(3)
-                .all()
-            )
-            for s in reversed(sample):
-                print(f"  • {s.ham_urun_adi} -> {s.fiyat:.2f} TL | Stokta: {s.stokta} | URL: {s.url}")
         finally:
             session.close()
     finally:
