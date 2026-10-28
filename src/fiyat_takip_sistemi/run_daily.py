@@ -11,7 +11,8 @@ from .core.db import SessionLocal
 from .core.matching import run_product_matching
 from .core.models import Competitor, Match, PriceSnapshot, Product
 from .core.rules import evaluate_rules, print_alerts_summary
-from .core.report import run_daily_report
+from .core.report import run_daily_report, prepare_report_data
+from .core.notify import format_daily_notification_message, send_telegram_message
 from .adapters.books_toscrape import BooksToScrapeAdapter, save_snapshots_to_db as save_books_snapshots
 from .adapters.fake_store import FakeStoreAdapter, save_snapshots_to_db as save_fake_store_snapshots
 
@@ -169,6 +170,10 @@ def main() -> None:
         print("\n" + "-" * 80)
         print(f"📈 [GÜN SONU ÖZETİ]")
         print(f"  • İncelenen Ürün Sayısı        : {toplam_urun}")
+        print(f"  • Rakibin Ucuz Olduğu Ürünler  : {rakip_ucuz_sayisi}")
+        print(f"  • Bizim Avantajlı Olduğumuz    : {toplam_urun - rakip_ucuz_sayisi}")
+        print("-" * 80)
+
         # 4. Kural Motorunu Çalıştır ve Uyarıları Bas (Kılavuz Gün 2)
         print("\n" + "=" * 80)
         print("🧠 [ADIM 4] KURAL MOTORU DEĞERLENDİRMESİ VE AKSIYONLAR")
@@ -178,6 +183,15 @@ def main() -> None:
 
         # 5. LLM Günlük Yönetici Raporunu Üret (Kılavuz Gün 2)
         llm_report = run_daily_report(session)
+
+        # 6. Telegram Bildirimini Gönder (Kılavuz Gün 2)
+        print("\n" + "=" * 80)
+        print("📲 [ADIM 6] TELEGRAM SABAH BİLDİRİMİ GÖNDERİLİYOR...")
+        print("=" * 80)
+        report_data = prepare_report_data(session)
+        critical_alerts = report_data.get("en_kritik_uyarilar", [])
+        telegram_msg = format_daily_notification_message(llm_report, critical_alerts)
+        send_telegram_message(telegram_msg)
 
     finally:
         session.close()
