@@ -46,17 +46,23 @@ def find_best_match(
     """
     rapidfuzz token_set_ratio kullanarak bir ürün için aday başlıklar arasındaki
     en yüksek benzerlik skoruna sahip başlığı ve skoru bulur.
+    Eşit token_set_ratio durumunda tam dize benzerliği (fuzz.ratio) yüksek olanı seçer.
     """
     normalized_target = normalize_product_name(product_name)
     best_candidate: Optional[str] = None
     best_score: float = 0.0
+    best_exact_ratio: float = 0.0
 
     for candidate in candidate_titles:
         normalized_candidate = normalize_product_name(candidate)
         score = float(fuzz.token_set_ratio(normalized_target, normalized_candidate))
+        exact_ratio = float(fuzz.ratio(normalized_target, normalized_candidate))
 
-        if score > best_score:
+        if (score > best_score) or (
+            score == best_score and exact_ratio > best_exact_ratio
+        ):
             best_score = score
+            best_exact_ratio = exact_ratio
             best_candidate = candidate
 
     return best_candidate, round(best_score, 1)

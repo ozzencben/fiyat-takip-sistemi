@@ -146,7 +146,7 @@ def evaluate_rules(db: Session) -> List[Alert]:
                 rec_text = (
                     f"Marjı bozmadan rekabet edemezsin. "
                     f"(Önerilen Fiyat: {suggested_price:.2f} TL < Min Fiyat: {min_allowed_price:.2f} TL | "
-                    f"Maliyet: {product.maliyet:.2f} TL, Hedef Marj: %{product.min_margin_pct if hasattr(product, 'min_margin_pct') else product.min_marj_yuzde:.0f})"
+                    f"Maliyet: {product.maliyet:.2f} TL, Hedef Marj: %{product.min_marj_yuzde:.0f})"
                 )
             else:
                 severity = Severity.YUKSEK if diff_pct >= 15.0 else Severity.ORTA

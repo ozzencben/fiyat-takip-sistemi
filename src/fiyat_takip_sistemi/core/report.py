@@ -25,9 +25,9 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:latest").strip()
 
 # Gemini modelleri (öncelik sırasıyla denenecek modeller)
 GEMINI_MODELS = [
+    "gemini-flash-latest",
     "gemini-3.1-flash-lite",
     "gemini-3.8-flash",
-    "gemini-flash-latest",
 ]
 
 
@@ -127,7 +127,7 @@ def _call_gemini(data: Dict[str, Any], system_prompt: str, user_content: str, ke
     for model_name in GEMINI_MODELS:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
         try:
-            resp = httpx.post(url, json=payload, timeout=12.0)
+            resp = httpx.post(url, json=payload, timeout=20.0)
             if resp.status_code == 200:
                 result_json = resp.json()
                 candidates = result_json.get("candidates", [])
@@ -140,6 +140,34 @@ def _call_gemini(data: Dict[str, Any], system_prompt: str, user_content: str, ke
             print(f"⚠️ Gemini ({model_name}) bağlantı uyarısı: {e}")
 
     return None
+
+
+def suggest_match_with_llm(our_product_name: str, competitor_product_name: str, score: float = 0.0) -> str:
+    """
+    Kılavuz Gün 2 (11:00-13:30 İsteğe bağlı):
+    'onay bekliyor' eşleşmeler için LLM'e 'Bu iki ürün aynı mı?' diye sorar.
+    Cevabı otomatik onay olarak değil, panelde öneri olarak göstermek üzere döndürür.
+    """
+    system_prompt = (
+        "Sen bir e-ticaret katalog uzmanısın. Sana verilen iki ürün adının aynı ürünü "
+        "temsil edip etmediğini tek bir kısa Türkçe cümleyle değerlendir. "
+        "Yanıtına 'Öneri: Aynı ürün' veya 'Öneri: Farklı ürün' diyerek başla."
+    )
+    user_content = (
+        f"Bizim ürünümüz: '{our_product_name}'\n"
+        f"Rakip ürünü: '{competitor_product_name}'\n"
+        f"Bu iki ürün aynı mı?"
+    )
+
+    if GEMINI_API_KEY:
+        res = _call_gemini({}, system_prompt, user_content, GEMINI_API_KEY)
+        if res:
+            return res
+
+    # Kural tabanlı yedek öneri
+    if score >= 80.0:
+        return f"Öneri: Aynı ürün (Benzerlik skoru %{score:.0f} oldukça yüksek, alt başlık/çeviri farkı olabilir)."
+    return f"Öneri: İnsan kontrolü gerekli (Benzerlik skoru %{score:.0f}, ortak kelimeler mevcut)."
 
 
 def _call_groq(data: Dict[str, Any], system_prompt: str, user_content: str, key: str) -> Optional[str]:

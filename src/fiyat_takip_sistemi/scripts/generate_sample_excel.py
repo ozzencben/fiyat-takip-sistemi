@@ -134,58 +134,58 @@ SAMPLE_PRODUCTS = [
     },
     {
         "sku": "BK-018",
-        "urun_adi": "Mesa Selimovic - Death and the Dervish",  # Sitede: Death and the Dervish
-        "fiyat": 750.0,
-        "maliyet": 500.0,
+        "urun_adi": "Mesaerion: Best Science Hikayeleri 1800-1849",  # Sitede: Mesaerion: The Best Science Fiction Stories 1800-1849 (Skor ~85: onay_bekliyor)
+        "fiyat": 1550.0,
+        "maliyet": 1050.0,
         "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-019",
-        "urun_adi": "Frankenstein",  # Birebir aynı
-        "fiyat": 1550.0,
-        "maliyet": 1000.0,
-        "min_marj_yuzde": 25.0,
+        "urun_adi": "Libertarian for Beginners Rehberi",  # Sitede: Libertarianism for Beginners (Skor ~85: onay_bekliyor)
+        "fiyat": 2100.0,
+        "maliyet": 1450.0,
+        "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-020",
-        "urun_adi": "Forever and Forever",  # Sitede: Forever and Forever: The Courtship of Henry Longfellow and Fanny Appleton
-        "fiyat": 1200.0,
-        "maliyet": 800.0,
+        "urun_adi": "Only the Himalayas Gezi Kitabı",  # Sitede: It's Only the Himalayas (Skor ~88: onay_bekliyor)
+        "fiyat": 1850.0,
+        "maliyet": 1250.0,
         "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-021",
-        "urun_adi": "Emma",
-        "fiyat": 1350.0,
-        "maliyet": 900.0,
+        "urun_adi": "Foolproof Preserving Reçel Rehberi",  # Sitede: Foolproof Preserving: A Guide to Small Batch Jams... (Skor ~74: onay_bekliyor)
+        "fiyat": 1300.0,
+        "maliyet": 850.0,
         "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-022",
-        "urun_adi": "Alice in Wonderland",  # Sitede: Alice's Adventures in Wonderland
-        "fiyat": 2250.0,
-        "maliyet": 1500.0,
+        "urun_adi": "In Her Wake (Polisiye)",  # Sitede: In Her Wake
+        "fiyat": 550.0,
+        "maliyet": 380.0,
         "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-023",
-        "urun_adi": "Ajin: Demi-Human, Volume 1",
-        "fiyat": 1750.0,
-        "maliyet": 1150.0,
-        "min_marj_yuzde": 25.0,
+        "urun_adi": "How Music Works",  # Sitede: How Music Works
+        "fiyat": 1520.0,
+        "maliyet": 1050.0,
+        "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-024",
-        "urun_adi": "A Spy's Alone",
-        "fiyat": 2050.0,
-        "maliyet": 1350.0,
+        "urun_adi": "Chase Me (Paris Nights)",  # Sitede: Chase Me (Paris Nights #2)
+        "fiyat": 1050.0,
+        "maliyet": 700.0,
         "min_marj_yuzde": 20.0,
     },
     {
         "sku": "BK-025",
-        "urun_adi": "1,000 Places to See Before You Die",
-        "fiyat": 1100.0,
-        "maliyet": 750.0,
+        "urun_adi": "Black Dust",  # Sitede: Black Dust
+        "fiyat": 1350.0,
+        "maliyet": 920.0,
         "min_marj_yuzde": 20.0,
     },
     # -------------------------------------------------------------------------
