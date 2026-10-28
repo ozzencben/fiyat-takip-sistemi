@@ -11,6 +11,7 @@ from .core.db import SessionLocal
 from .core.matching import run_product_matching
 from .core.models import Competitor, Match, PriceSnapshot, Product
 from .core.rules import evaluate_rules, print_alerts_summary
+from .core.report import run_daily_report
 from .adapters.books_toscrape import BooksToScrapeAdapter, save_snapshots_to_db as save_books_snapshots
 from .adapters.fake_store import FakeStoreAdapter, save_snapshots_to_db as save_fake_store_snapshots
 
@@ -174,6 +175,9 @@ def main() -> None:
         print("=" * 80)
         alerts = evaluate_rules(session)
         print_alerts_summary(alerts)
+
+        # 5. LLM Günlük Yönetici Raporunu Üret (Kılavuz Gün 2)
+        llm_report = run_daily_report(session)
 
     finally:
         session.close()
