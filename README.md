@@ -171,5 +171,5 @@ class YeniRakipAdapter(BaseAdapter):
 Kendi ürün listenizi rakip fiyatlarıyla her gün otomatik karşılaştıran, kâr marjınızı koruyan ve sabah özetini telefonunuza gönderen bu sistemi **kendi mağazanız veya işletmeniz için kurmamı isterseniz** benimle iletişime geçebilirsiniz:
 
 - **LinkedIn:** [LinkedIn Profilim](https://www.linkedin.com/)
-- **E-posta:** `iletisim@ornekdomain.com`
+- **E-posta:** `ozzencben@gmail.com`
 - **GitHub:** [Proje Deposu](https://github.com/)
