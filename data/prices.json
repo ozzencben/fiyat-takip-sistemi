@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "A Light in the Attic (Ciltli)",
-    "price": 1790.48,
+    "price": 1932.0,
     "in_stock": true,
     "url": "http://localhost:8001/products/1"
   },
@@ -16,7 +16,7 @@
   {
     "id": 3,
     "name": "Soumission",
-    "price": 1681.21,
+    "price": 1840.0,
     "in_stock": true,
     "url": "http://localhost:8001/products/3"
   },
@@ -58,7 +58,7 @@
   {
     "id": 9,
     "name": "The Boys in the Boat",
-    "price": 798.27,
+    "price": 874.0,
     "in_stock": true,
     "url": "http://localhost:8001/products/9"
   },
@@ -72,7 +72,7 @@
   {
     "id": 11,
     "name": "Starving Hearts (Triangular Trade Trilogy)",
-    "price": 430.3,
+    "price": 506.0,
     "in_stock": true,
     "url": "http://localhost:8001/products/11"
   },

@@ -296,9 +296,15 @@
                 <h2>Son 14 Günlük Fiyat Değişim Grafiği</h2>
                 <span>Her rakip için ayrı çizgi, kendi fiyatımız için kesikli sabit çizgi</span>
             </div>
+            {% if detay.gecmis %}
             <div class="chart-container">
                 <canvas id="priceHistoryChart"></canvas>
             </div>
+            {% else %}
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                Henüz veri yok
+            </div>
+            {% endif %}
         </section>
 
         <!-- Fiyat Geçmişi Tablosu -->
@@ -306,6 +312,7 @@
             <div class="table-header">
                 Kronolojik Fiyat Geçmişi Kayıtları ({{ detay.gecmis|length }} Kayıt)
             </div>
+            {% if detay.gecmis %}
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -341,6 +348,11 @@
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                Henüz veri yok
+            </div>
+            {% endif %}
         </section>
     </div>
 

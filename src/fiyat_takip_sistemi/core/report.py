@@ -261,7 +261,13 @@ def save_last_report(report_text: str, report_data: Dict[str, Any]) -> None:
 def get_latest_report_text(db: Session) -> str:
     """
     Varsa kaydedilmiş son raporu döndürür; yoksa güncel verilerle şablon/LLM raporu üretip kaydeder.
+    Veritabanında henüz ürün veya fiyat kaydı yoksa 'Henüz veri yok' döndürür.
     """
+    total_products = db.query(Product).count()
+    total_snapshots = db.query(PriceSnapshot).count()
+    if total_products == 0 or total_snapshots == 0:
+        return "Henüz veri yok"
+
     report_data = prepare_report_data(db)
     if LAST_REPORT_FILE.exists():
         try:
@@ -270,6 +276,8 @@ def get_latest_report_text(db: Session) -> str:
             if (
                 cached.get("son_rapor")
                 and cached.get("toplam_urun_sayisi") == report_data["toplam_urun_sayisi"]
+                and cached.get("rakibin_ucuz_oldugu_urun_sayisi")
+                == report_data["rakibin_ucuz_oldugu_urun_sayisi"]
             ):
                 return str(cached["son_rapor"])
         except Exception:
