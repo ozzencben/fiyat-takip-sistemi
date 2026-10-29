@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -237,6 +238,48 @@ def generate_llm_report(data: Dict[str, Any], api_key: Optional[str] = None) -> 
     return generate_fallback_report(data)
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+LAST_REPORT_FILE = PROJECT_ROOT / "data" / "last_report.json"
+
+
+def save_last_report(report_text: str, report_data: Dict[str, Any]) -> None:
+    """Üretilen son raporu web panelinde (/api/ozet) hızlı göstermek üzere kaydeder."""
+    try:
+        LAST_REPORT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "rapor_tarihi": report_data.get("rapor_tarihi", datetime.now().strftime("%Y-%m-%d %H:%M")),
+            "toplam_urun_sayisi": report_data.get("toplam_urun_sayisi", 0),
+            "rakibin_ucuz_oldugu_urun_sayisi": report_data.get("rakibin_ucuz_oldugu_urun_sayisi", 0),
+            "son_rapor": report_text,
+        }
+        with open(LAST_REPORT_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠️ Son rapor dosyaya kaydedilemedi: {e}")
+
+
+def get_latest_report_text(db: Session) -> str:
+    """
+    Varsa kaydedilmiş son raporu döndürür; yoksa güncel verilerle şablon/LLM raporu üretip kaydeder.
+    """
+    report_data = prepare_report_data(db)
+    if LAST_REPORT_FILE.exists():
+        try:
+            with open(LAST_REPORT_FILE, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if (
+                cached.get("son_rapor")
+                and cached.get("toplam_urun_sayisi") == report_data["toplam_urun_sayisi"]
+            ):
+                return str(cached["son_rapor"])
+        except Exception:
+            pass
+
+    report_text = generate_llm_report(report_data)
+    save_last_report(report_text, report_data)
+    return report_text
+
+
 def run_daily_report(db: Session) -> str:
     """
     Rapor akışını baştan sona çalıştırır ve üretilen raporu terminalde gösterir.
@@ -253,6 +296,7 @@ def run_daily_report(db: Session) -> str:
     print(f"  • İncelenen Kritik Uyarı    : {len(report_data['en_kritik_uyarilar'])} adet")
 
     report_text = generate_llm_report(report_data)
+    save_last_report(report_text, report_data)
 
     print("\n" + "=" * 80)
     print("📌 GÜNLÜK SABAH RAPORU (EXECUTIVE SUMMARY)")
