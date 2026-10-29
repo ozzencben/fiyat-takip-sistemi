@@ -1,0 +1,27 @@
+1
+00:00:00,150 --> 00:00:10,156
+Her sabah rakip siteleri tek tek açıp fiyatlarınızı karşılaştırıyor musunuz? Bu iş kendiliğinden yapılabilir.
+
+2
+00:00:10,456 --> 00:00:21,513
+Sisteme yalnızca ürün listenizi verirsiniz: ürün adı, fiyatınız, maliyetiniz ve en düşük kâr marjınız.
+
+3
+00:00:21,813 --> 00:00:34,163
+Panelde hangi rakip hangi üründe sizden ucuz, tek bakışta görünür. Kırmızı olanlar dikkat isteyenler.
+
+4
+00:00:34,463 --> 00:00:45,199
+Ürün isimleri farklı yazılsa bile sistem otomatik eşleştirir; yakın adayları tek tıkla onayınıza sunar.
+
+5
+00:00:45,499 --> 00:00:57,724
+Bir rakip fiyatı düşürdü. Birkaç saniye sonra Türkçe sabah özeti ve kritik uyarılar telefonunuzda.
+
+6
+00:00:58,024 --> 00:01:08,400
+Sistem sadece uyarmaz; marjınızı bozmadan hangi fiyata çekebileceğinizi de söyler ve 14 günlük grafiği sunar.
+
+7
+00:01:08,700 --> 00:01:17,864
+Sizin ürünlerinize ve sitelerinize göre kuruyorum. Yazın, birlikte bakalım.
