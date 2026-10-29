@@ -13,3 +13,4 @@ if __name__ == "__main__":
         print_alerts_summary(active_alerts)
     finally:
         session.close()
+

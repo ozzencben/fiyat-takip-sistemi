@@ -12,3 +12,4 @@ if __name__ == "__main__":
         run_product_matching(session)
     finally:
         session.close()
+

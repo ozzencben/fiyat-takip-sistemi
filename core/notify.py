@@ -12,3 +12,4 @@ if __name__ == "__main__":
             "🔔 Fiyat Takip Sistemi: Telegram bot entegrasyon testi başarılı!",
             chat_id=chat_id,
         )
+

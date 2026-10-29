@@ -16,3 +16,4 @@ if __name__ == "__main__":
         print(f"✓ Veritabanındaki güncel toplam ürün: {total_in_db}")
     finally:
         session.close()
+
