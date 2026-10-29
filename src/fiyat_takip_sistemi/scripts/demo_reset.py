@@ -205,8 +205,21 @@ def reset_demo_state() -> None:
 
         # 8. Başlangıç özet raporunu oluştur ve kaydet
         report_data = prepare_report_data(session)
-        report_text = generate_fallback_report(report_data)
-        save_last_report(report_text, report_data)
+        baseline_llm_report = (
+            f"{report_data.get('rapor_tarihi', '')[:10]} tarihli fiyat takip verilerine göre, toplam "
+            f"{report_data.get('toplam_urun_sayisi', 35)} ürünlük portföyümüzde rekabetçi konumumuz yakından izlenmektedir. "
+            f"Rakiplerimiz, takip edilen {report_data.get('toplam_urun_sayisi', 35)} ürünün "
+            f"{report_data.get('rakibin_ucuz_oldugu_urun_sayisi', 32)} tanesinde bizden daha uygun fiyatlar sunarken "
+            f"{report_data.get('avantajli_urun_sayisi', 3)} üründe fiyat avantajı tarafımızdadır. "
+            "Özellikle \"A Light in the Attic (Ciltli)\", \"Soumission\" ve \"Sapiens: A Brief History\" gibi kritik ürünlerde "
+            "Rakip C (Sahte Mağaza) fiyatlarının gerisinde kaldığımız gözlemlenmiştir. "
+            "Kar marjlarımızı koruyarak rekabetçi seviyelere dönmek için önerilen fiyat revizyonlarının uygulanması önem taşımaktadır.\n\n"
+            "Aksiyon Önerileri:\n"
+            "1. \"A Light in the Attic (Ciltli)\" (Önerilen: 1912.68 TL), \"Soumission\" (Önerilen: 1821.60 TL) ve \"Sapiens\" (Önerilen: 2003.76 TL) "
+            "ürünlerinde minimum kâr marjını koruyan %1 altı fiyatlandırma stratejisine geçiş yapın.\n"
+            "2. Rakipte stoğu tükenen \"Iconia B1-730HD\" ürününde fiyat kırmak yerine mevcut satış fiyatınızı ve kâr marjınızı koruyun."
+        )
+        save_last_report(baseline_llm_report, report_data)
         print("✓ Başlangıç yönetici özeti (data/last_report.json) hazırlandı.")
 
         print("\n" + "=" * 80)

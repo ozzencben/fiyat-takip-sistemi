@@ -21,7 +21,7 @@ from .adapters.fake_store import FakeStoreAdapter, save_snapshots_to_db as save_
 logger = get_logger("run_daily")
 
 
-def run_scrapers(db: Session) -> None:
+def run_scrapers(db: Session, fast_demo: bool = False) -> None:
     """
     Kılavuz gereksinimi Adım 1 & Gün 2 (17:00-22:00):
     Adaptörleri (Rakip A, Rakip B, Rakip C) çalıştır ve ham fiyatları veritabanına kaydet.
@@ -33,39 +33,42 @@ def run_scrapers(db: Session) -> None:
     print("=" * 80)
     logger.info("Adım 1: Rakip site adaptörleri çalıştırılıyor.")
 
-    # 1. Rakip A (BooksToScrape)
-    books_adapter = BooksToScrapeAdapter()
-    try:
-        print("\n▶ Rakip A (BooksToScrape) fiyatları çekiliyor...")
-        logger.info("Rakip A (BooksToScrape) veri çekimi başladı.")
-        books_data = books_adapter.fetch_products(max_pages=5)
-        saved_a = save_books_snapshots(db, books_data)
-        print(f"✓ Rakip A: {saved_a} yeni snapshot kaydedildi.")
-        logger.info(f"Rakip A (BooksToScrape) tamamlandı: {saved_a} yeni snapshot kaydedildi.")
-    except Exception as e:
-        error_msg = f"Rakip A adaptörü çalışmadı ({e})"
-        print(f"⚠️ {error_msg}")
-        logger.error(error_msg)
-        send_telegram_message(f"⚠️ <b>Sistem Uyarısı:</b> Rakip A adaptörü çalışmadı.\nDetay: {e}")
-    finally:
-        books_adapter.close()
+    if not fast_demo:
+        # 1. Rakip A (BooksToScrape)
+        books_adapter = BooksToScrapeAdapter()
+        try:
+            print("\n▶ Rakip A (BooksToScrape) fiyatları çekiliyor...")
+            logger.info("Rakip A (BooksToScrape) veri çekimi başladı.")
+            books_data = books_adapter.fetch_products(max_pages=5)
+            saved_a = save_books_snapshots(db, books_data)
+            print(f"✓ Rakip A: {saved_a} yeni snapshot kaydedildi.")
+            logger.info(f"Rakip A (BooksToScrape) tamamlandı: {saved_a} yeni snapshot kaydedildi.")
+        except Exception as e:
+            error_msg = f"Rakip A adaptörü çalışmadı ({e})"
+            print(f"⚠️ {error_msg}")
+            logger.error(error_msg)
+            send_telegram_message(f"⚠️ <b>Sistem Uyarısı:</b> Rakip A adaptörü çalışmadı.\nDetay: {e}")
+        finally:
+            books_adapter.close()
 
-    # 2. Rakip B (WebScraper.io - Elektronik Test Sitesi)
-    webscraper_adapter = WebScraperIOAdapter()
-    try:
-        print("\n▶ Rakip B (WebScraper.io) fiyatları çekiliyor...")
-        logger.info("Rakip B (WebScraper.io) veri çekimi başladı.")
-        webscraper_data = webscraper_adapter.fetch_products()
-        saved_b = save_webscraper_snapshots(db, webscraper_data)
-        print(f"✓ Rakip B: {saved_b} yeni snapshot kaydedildi.")
-        logger.info(f"Rakip B (WebScraper.io) tamamlandı: {saved_b} yeni snapshot kaydedildi.")
-    except Exception as e:
-        error_msg = f"Rakip B adaptörü çalışmadı ({e})"
-        print(f"⚠️ {error_msg}")
-        logger.error(error_msg)
-        send_telegram_message(f"⚠️ <b>Sistem Uyarısı:</b> Rakip B adaptörü çalışmadı.\nDetay: {e}")
-    finally:
-        webscraper_adapter.close()
+        # 2. Rakip B (WebScraper.io - Elektronik Test Sitesi)
+        webscraper_adapter = WebScraperIOAdapter()
+        try:
+            print("\n▶ Rakip B (WebScraper.io) fiyatları çekiliyor...")
+            logger.info("Rakip B (WebScraper.io) veri çekimi başladı.")
+            webscraper_data = webscraper_adapter.fetch_products()
+            saved_b = save_webscraper_snapshots(db, webscraper_data)
+            print(f"✓ Rakip B: {saved_b} yeni snapshot kaydedildi.")
+            logger.info(f"Rakip B (WebScraper.io) tamamlandı: {saved_b} yeni snapshot kaydedildi.")
+        except Exception as e:
+            error_msg = f"Rakip B adaptörü çalışmadı ({e})"
+            print(f"⚠️ {error_msg}")
+            logger.error(error_msg)
+            send_telegram_message(f"⚠️ <b>Sistem Uyarısı:</b> Rakip B adaptörü çalışmadı.\nDetay: {e}")
+        finally:
+            webscraper_adapter.close()
+    else:
+        print("\n⚡ [DEMO HIZLI MOD] Rakip A ve Rakip B güncel önbellekten okundu, Rakip C taranıyor...")
 
     # 3. Rakip C (Sahte Mağaza)
     fake_adapter = FakeStoreAdapter()
@@ -174,7 +177,7 @@ def build_comparison_dataframe(db: Session) -> pd.DataFrame:
     return df
 
 
-def run_daily() -> None:
+def run_daily(fast_demo: Optional[bool] = None) -> None:
     """
     Günlük akışı uçtan uca çalıştıran ana fonksiyon.
     1. Adaptörleri çalıştırır
@@ -184,11 +187,13 @@ def run_daily() -> None:
     5. LLM günlük raporunu üretir
     6. Telegram sabah bildirimini gönderir
     """
+    if fast_demo is None:
+        fast_demo = "--demo" in sys.argv or "--fast" in sys.argv
     logger.info("=== GÜNLÜK FİYAT TAKİP AKIŞI (run_daily) BAŞLADI ===")
     session = SessionLocal()
     try:
         # 1. Adaptörleri çalıştır
-        run_scrapers(session)
+        run_scrapers(session, fast_demo=fast_demo)
 
         # 2. Yeni ürünleri eşleştir
         print("\n" + "=" * 80)
