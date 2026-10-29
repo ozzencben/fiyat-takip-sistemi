@@ -329,7 +329,7 @@
                         {% for kayit in detay.gecmis|reverse %}
                         {% set diff = kayit.fiyat - detay.urun.benim_fiyatim %}
                         <tr>
-                            <td>{{ kayit.cekilme_zamani[:10] if kayit.cekilme_zamani else "-" }}</td>
+                            <td>{{ kayit.cekilme_zamani[:16] if kayit.cekilme_zamani else "-" }}</td>
                             <td><strong>{{ kayit.rakip_adi }}</strong></td>
                             <td>{{ kayit.ham_urun_adi }}</td>
                             <td><strong>{{ "%.2f"|format(kayit.fiyat) }} TL</strong></td>

@@ -174,8 +174,20 @@ def evaluate_rules(db: Session) -> List[Alert]:
             )
 
     # Öncelik sırasına göre sırala: YÜKSEK -> ORTA -> DÜŞÜK
+    # Aynı önem derecesinde FIYAT_DUSTU (anlık indirim) uyarılarını en üste al
     priority_order = {Severity.YUKSEK: 1, Severity.ORTA: 2, Severity.DUSUK: 3}
-    alerts.sort(key=lambda a: priority_order.get(a.severity, 99))
+    rule_order = {
+        RuleType.FIYAT_DUSTU: 1,
+        RuleType.RAKIP_UCUZ: 2,
+        RuleType.STOK_BITTI: 3,
+        RuleType.ONERI: 4,
+    }
+    alerts.sort(
+        key=lambda a: (
+            priority_order.get(a.severity, 99),
+            rule_order.get(a.rule_type, 99),
+        )
+    )
 
     return alerts
 

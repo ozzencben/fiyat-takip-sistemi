@@ -8,3 +8,4 @@ from fiyat_takip_sistemi.scripts.demo_reset import reset_demo_state
 
 if __name__ == "__main__":
     reset_demo_state()
+

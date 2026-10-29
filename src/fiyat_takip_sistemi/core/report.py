@@ -273,17 +273,22 @@ def get_latest_report_text(db: Session) -> str:
         try:
             with open(LAST_REPORT_FILE, "r", encoding="utf-8") as f:
                 cached = json.load(f)
-            if (
-                cached.get("son_rapor")
-                and cached.get("toplam_urun_sayisi") == report_data["toplam_urun_sayisi"]
-                and cached.get("rakibin_ucuz_oldugu_urun_sayisi")
-                == report_data["rakibin_ucuz_oldugu_urun_sayisi"]
-            ):
-                return str(cached["son_rapor"])
+            cached_text = str(cached.get("son_rapor", "")).strip()
+            if cached_text:
+                if (
+                    cached.get("toplam_urun_sayisi") == report_data["toplam_urun_sayisi"]
+                    and cached.get("rakibin_ucuz_oldugu_urun_sayisi")
+                    == report_data["rakibin_ucuz_oldugu_urun_sayisi"]
+                ):
+                    return cached_text
+                # Eşleşme onayı vb. sonrası sayılar değiştiyse paneli bekletmeden şablonu güncelle
+                updated_fallback = generate_fallback_report(report_data)
+                save_last_report(updated_fallback, report_data)
+                return updated_fallback
         except Exception:
             pass
 
-    report_text = generate_llm_report(report_data)
+    report_text = generate_fallback_report(report_data)
     save_last_report(report_text, report_data)
     return report_text
 
