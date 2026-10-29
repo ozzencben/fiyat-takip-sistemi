@@ -73,7 +73,7 @@ def evaluate_rules(db: Session) -> List[Alert]:
                 PriceSnapshot.competitor_id == competitor.id,
                 PriceSnapshot.ham_urun_adi == match.ham_urun_adi,
             )
-            .order_by(desc(PriceSnapshot.id))
+            .order_by(desc(PriceSnapshot.cekilme_zamani), desc(PriceSnapshot.id))
             .limit(2)
             .all()
         )

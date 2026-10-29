@@ -129,7 +129,7 @@ def build_comparison_dataframe(db: Session) -> pd.DataFrame:
                     PriceSnapshot.competitor_id == match.competitor_id,
                     PriceSnapshot.ham_urun_adi == match.ham_urun_adi,
                 )
-                .order_by(desc(PriceSnapshot.id))
+                .order_by(desc(PriceSnapshot.cekilme_zamani), desc(PriceSnapshot.id))
                 .first()
             )
 

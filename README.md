@@ -65,6 +65,11 @@ uv run python -m fiyat_takip_sistemi.scripts.simulate_price_change
 
 ## 📊 Veritabanı Tabloları
 - `products`: Kendi ürünlerimiz (`sku`, `urun_adi`, `fiyat`, `maliyet`, `min_marj_yuzde`).
-- `competitors`: İzlenen rakipler (`Rakip A` ve `Rakip C`).
+- `competitors`: İzlenen rakipler (`Rakip A`, `Rakip B` ve `Rakip C`).
 - `price_snapshots`: Rakiplerden çekilen ham fiyat ve stok zaman serisi kayıtları.
 - `matches`: Kendi ürünlerimiz ile rakip ürünler arasındaki eşleşme köprüsü.
+
+---
+
+## ℹ️ Örnek Demo Verisi Hakkında Not
+Web panelindeki ürün detay sayfalarında yer alan 14 günlük fiyat değişim grafiklerini sergileyebilmek amacıyla `scripts/seed_history.py` aracı tarafından üretilen geçmiş tarihli kayıtlar **örnek demo verisi**dir (`örnek veri, örnek rakip`). Canlı kazıma kayıtları ise yalnızca kazıma anındaki gerçek verileri içerir.

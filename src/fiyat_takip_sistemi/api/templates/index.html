@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiyat Takip ve Rekabet Paneli</title>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+            /* Kılavuz renk kuralı: Rakip ucuzsa kırmızı, rakip pahalıysa yeşil, fark yoksa gri */
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --red-text: #b91c1c;
+            --green-bg: #f0fdf4;
+            --green-border: #bbf7d0;
+            --green-text: #15803d;
+            --gray-bg: #f1f5f9;
+            --gray-border: #cbd5e1;
+            --gray-text: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 1.75rem 1.25rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        header p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* 1. Üstte 3 Özet Kutusu */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+        }
+
+        .summary-card.card-danger {
+            border-left: 4px solid var(--red-text);
+        }
+
+        .summary-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .summary-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .summary-value.text-red {
+            color: var(--red-text);
+        }
+
+        .summary-value.timestamp {
+            font-size: 1.25rem;
+            margin-top: 0.35rem;
+        }
+
+        /* 2. Günün LLM Raporu */
+        .report-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .report-header span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .report-content {
+            font-size: 0.9375rem;
+            color: var(--text-main);
+            white-space: pre-line;
+            line-height: 1.65;
+        }
+
+        /* 3. Arama Kutusu ve Filtre Alanı */
+        .table-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .search-input {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            min-width: 260px;
+            color: var(--text-main);
+            background: #fff;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--text-muted);
+        }
+
+        .filter-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-label input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            cursor: pointer;
+        }
+
+        .row-counter {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        /* 4. Ürün Karşılaştırma Tablosu */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        thead th {
+            background: var(--gray-bg);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        /* Renk kuralı: rakip ucuzsa kırmızı, rakip pahalıysa yeşil, fark yoksa gri */
+        tr.row-red {
+            background-color: var(--red-bg);
+        }
+
+        tr.row-green {
+            background-color: var(--green-bg);
+        }
+
+        tr.row-gray {
+            background-color: var(--bg-card);
+        }
+
+        tbody tr:hover {
+            filter: brightness(0.98);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .product-name:hover {
+            text-decoration: underline;
+        }
+
+        .product-sku {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .price-cell {
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .my-price {
+            font-weight: 700;
+        }
+
+        .diff-red {
+            color: var(--red-text);
+            font-weight: 700;
+        }
+
+        .diff-green {
+            color: var(--green-text);
+            font-weight: 700;
+        }
+
+        .diff-gray {
+            color: var(--gray-text);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-red {
+            background-color: var(--red-bg);
+            color: var(--red-text);
+            border: 1px solid var(--red-border);
+        }
+
+        .badge-green {
+            background-color: var(--green-bg);
+            color: var(--green-text);
+            border: 1px solid var(--green-border);
+        }
+
+        .badge-gray {
+            background-color: var(--gray-bg);
+            color: var(--gray-text);
+            border: 1px solid var(--gray-border);
+        }
+
+        .recommendation-subtext {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .empty-state {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-input {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Fiyat Takip ve Rekabet Paneli</h1>
+                <p>Excel ürün kataloğu ve rakip mağaza fiyatlarının günlük otomatik karşılaştırması</p>
+            </div>
+        </header>
+
+        <!-- 1. Üstte 3 Özet Kutusu -->
+        <section class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">İzlenen Ürün</div>
+                <div class="summary-value">{{ ozet.toplam_urun }}</div>
+            </div>
+            <div class="summary-card card-danger">
+                <div class="summary-label">Rakibin Ucuz Olduğu Ürün</div>
+                <div class="summary-value text-red">{{ ozet.rakibin_ucuz_oldugu_urun_sayisi }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Son Güncelleme</div>
+                <div class="summary-value timestamp">{{ ozet.son_guncelleme_zamani }}</div>
+            </div>
+        </section>
+
+        <!-- 2. Altında Günün LLM Raporu -->
+        <section class="report-box">
+            <div class="report-header">
+                <h2>Günün Yönetici Özeti (LLM Raporu)</h2>
+                <span>Günlük Brifing</span>
+            </div>
+            <div class="report-content">{{ ozet.son_rapor }}</div>
+        </section>
+
+        <!-- 3. Altında Ürün Tablosu (Arama Kutusu + Filtre ile) -->
+        <section class="table-section">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-input"
+                        placeholder="Ürün adı veya SKU ara..."
+                        aria-label="Ürün adı veya SKU ara"
+                    >
+                    <label class="filter-label">
+                        <input type="checkbox" id="onlyCheaperCheckbox">
+                        Sadece rakibin ucuz olduğu ürünler
+                    </label>
+                </div>
+                <div class="row-counter" id="rowCounter">
+                    Toplam {{ urunler|length }} ürün gösteriliyor
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Ürün Adı</th>
+                            <th>Benim Fiyatım</th>
+                            <th>Rakip A (BooksToScrape)</th>
+                            <th>Rakip B (WebScraper)</th>
+                            <th>Rakip C (Sahte Mağaza)</th>
+                            <th>Fark</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in urunler %}
+                        {% set is_cheaper = (u.durum == "RAKİP UCUZ") %}
+                        {% set is_expensive = (u.durum == "BİZ UCUZUZ") %}
+                        <tr
+                            class="product-row {% if is_cheaper %}row-red{% elif is_expensive %}row-green{% else %}row-gray{% endif %}"
+                            data-name="{{ u.urun_adi|lower }} {{ u.sku|lower }}"
+                            data-cheaper="{{ 'true' if is_cheaper else 'false' }}"
+                        >
+                            <td>
+                                <a href="/urun/{{ u.id }}" class="product-name">{{ u.urun_adi }}</a>
+                                <span class="product-sku">{{ u.sku }}</span>
+                            </td>
+                            <td class="price-cell my-price">{{ "%.2f"|format(u.benim_fiyatim) }} TL</td>
+                            <td class="price-cell">
+                                {% if u.rakip_a is not none %}{{ "%.2f"|format(u.rakip_a) }} TL{% else %}-{% endif %}
+                            </td>
+                            <td class="price-cell">
+                                {% if u.rakip_b is not none %}{{ "%.2f"|format(u.rakip_b) }} TL{% else %}-{% endif %}
+                            </td>
+                            <td class="price-cell">
+                                {% if u.rakip_c is not none %}{{ "%.2f"|format(u.rakip_c) }} TL{% else %}-{% endif %}
+                            </td>
+                            <td class="price-cell {% if is_cheaper %}diff-red{% elif is_expensive %}diff-green{% else %}diff-gray{% endif %}">
+                                {% if u.fark is not none %}
+                                    {{ "%+.2f"|format(u.fark) }} TL ({{ "%+.1f"|format(u.fark_yuzde) }}%)
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if is_cheaper %}
+                                    <span class="status-badge badge-red">RAKİP UCUZ</span>
+                                {% elif is_expensive %}
+                                    <span class="status-badge badge-green">RAKİP PAHALI</span>
+                                {% else %}
+                                    <span class="status-badge badge-gray">{{ u.durum }}</span>
+                                {% endif %}
+                                {% if u.oneri_notu %}
+                                    <span class="recommendation-subtext">{{ u.oneri_notu }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state">
+                    Arama veya filtre kriterlerine uygun ürün bulunamadı.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const searchInput = document.getElementById("searchInput");
+            const onlyCheaperCheckbox = document.getElementById("onlyCheaperCheckbox");
+            const rows = Array.from(document.querySelectorAll(".product-row"));
+            const rowCounter = document.getElementById("rowCounter");
+            const emptyState = document.getElementById("emptyState");
+
+            function applyFilters() {
+                const query = searchInput.value.trim().toLowerCase();
+                const onlyCheaper = onlyCheaperCheckbox.checked;
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const nameAndSku = row.getAttribute("data-name") || "";
+                    const isCheaper = row.getAttribute("data-cheaper") === "true";
+
+                    const matchesSearch = !query || nameAndSku.indexOf(query) !== -1;
+                    const matchesCheaper = !onlyCheaper || isCheaper;
+
+                    if (matchesSearch && matchesCheaper) {
+                        row.style.display = "";
+                        visibleCount += 1;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                rowCounter.textContent = "Toplam " + visibleCount + " ürün gösteriliyor";
+                emptyState.style.display = visibleCount === 0 ? "block" : "none";
+            }
+
+            searchInput.addEventListener("input", applyFilters);
+            onlyCheaperCheckbox.addEventListener("change", applyFilters);
+        })();
+    </script>
+</body>
+</html>

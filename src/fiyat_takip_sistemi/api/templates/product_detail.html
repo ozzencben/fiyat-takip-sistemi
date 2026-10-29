@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ detay.urun.urun_adi }} - Fiyat Geçmişi ve Detay</title>
+    <!-- Kılavuz gereksinimi: Grafik için Chart.js (CDN ile) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --red-text: #b91c1c;
+            --green-bg: #f0fdf4;
+            --green-border: #bbf7d0;
+            --green-text: #15803d;
+            --gray-bg: #f1f5f9;
+            --gray-border: #cbd5e1;
+            --gray-text: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 1.75rem 1.25rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+            text-decoration: underline;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .sku-tag {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .demo-badge {
+            background: var(--gray-bg);
+            color: var(--gray-text);
+            border: 1px solid var(--gray-border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Özet Kartları */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.15rem;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .summary-sub {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .text-red {
+            color: var(--red-text);
+        }
+
+        .text-green {
+            color: var(--green-text);
+        }
+
+        /* Grafik Kutusu */
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .chart-header span {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 380px;
+            width: 100%;
+        }
+
+        /* Geçmiş Kayıtlar Tablosu */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        thead th {
+            background: var(--gray-bg);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-red {
+            background: var(--red-bg);
+            color: var(--red-text);
+            border: 1px solid var(--red-border);
+        }
+
+        .badge-green {
+            background: var(--green-bg);
+            color: var(--green-text);
+            border: 1px solid var(--green-border);
+        }
+
+        .badge-gray {
+            background: var(--gray-bg);
+            color: var(--gray-text);
+            border: 1px solid var(--gray-border);
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                height: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Ürün Tablosuna Dön</a>
+
+        <header>
+            <div>
+                <h1>{{ detay.urun.urun_adi }}</h1>
+                <div class="sku-tag">SKU: {{ detay.urun.sku }} | Ürün ID: #{{ detay.urun.id }}</div>
+            </div>
+            <span class="demo-badge">Demo: Örnek rakip mağaza ve örnek geçmiş verisi</span>
+        </header>
+
+        <!-- Ürün Özet Kartları -->
+        <section class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Benim Fiyatım</div>
+                <div class="summary-value">{{ "%.2f"|format(detay.urun.benim_fiyatim) }} TL</div>
+                <div class="summary-sub">Sabit referans fiyatımız</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">En Düşük Rakip Fiyatı</div>
+                {% if karsilastirma.en_dusuk_rakip_fiyat is not none %}
+                    <div class="summary-value {% if karsilastirma.durum == 'RAKİP UCUZ' %}text-red{% elif karsilastirma.durum == 'BİZ UCUZUZ' %}text-green{% endif %}">
+                        {{ "%.2f"|format(karsilastirma.en_dusuk_rakip_fiyat) }} TL
+                    </div>
+                    <div class="summary-sub">Fark: {{ "%+.2f"|format(karsilastirma.fark) }} TL ({{ "%+.1f"|format(karsilastirma.fark_yuzde) }}%)</div>
+                {% else %}
+                    <div class="summary-value">-</div>
+                    <div class="summary-sub">Henüz rakip verisi yok</div>
+                {% endif %}
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Maliyet &amp; Min. Kâr Marjı</div>
+                <div class="summary-value">{{ "%.2f"|format(detay.urun.min_kabul_edilebilir_fiyat) }} TL</div>
+                <div class="summary-sub">Maliyet: {{ "%.2f"|format(detay.urun.maliyet) }} TL | Min Marj: %{{ "%.0f"|format(detay.urun.min_marj_yuzde) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Sistem Fiyat Önerisi</div>
+                {% if karsilastirma.onerilen_fiyat is not none %}
+                    <div class="summary-value">{{ "%.2f"|format(karsilastirma.onerilen_fiyat) }} TL</div>
+                {% else %}
+                    <div class="summary-value">{{ karsilastirma.durum }}</div>
+                {% endif %}
+                <div class="summary-sub">{{ karsilastirma.oneri_notu or "Fiyat aksiyonu gerekmiyor." }}</div>
+            </div>
+        </section>
+
+        <!-- Chart.js Çizgi Grafik -->
+        <section class="chart-card">
+            <div class="chart-header">
+                <h2>Son 14 Günlük Fiyat Değişim Grafiği</h2>
+                <span>Her rakip için ayrı çizgi, kendi fiyatımız için kesikli sabit çizgi</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceHistoryChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Fiyat Geçmişi Tablosu -->
+        <section class="table-card">
+            <div class="table-header">
+                Kronolojik Fiyat Geçmişi Kayıtları ({{ detay.gecmis|length }} Kayıt)
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Rakip Mağaza</th>
+                            <th>Rakip Ürün Adı</th>
+                            <th>Rakip Fiyatı</th>
+                            <th>Benim Fiyatımla Fark</th>
+                            <th>Stok Durumu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kayit in detay.gecmis|reverse %}
+                        {% set diff = kayit.fiyat - detay.urun.benim_fiyatim %}
+                        <tr>
+                            <td>{{ kayit.cekilme_zamani[:10] if kayit.cekilme_zamani else "-" }}</td>
+                            <td><strong>{{ kayit.rakip_adi }}</strong></td>
+                            <td>{{ kayit.ham_urun_adi }}</td>
+                            <td><strong>{{ "%.2f"|format(kayit.fiyat) }} TL</strong></td>
+                            <td class="{% if diff < 0 %}text-red{% elif diff > 0 %}text-green{% endif %}">
+                                {{ "%+.2f"|format(diff) }} TL
+                            </td>
+                            <td>
+                                {% if kayit.stokta %}
+                                    <span class="badge badge-green">Stokta Var</span>
+                                {% else %}
+                                    <span class="badge badge-red">Tükendi</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const detayData = {{ detay | tojson }};
+            const myPrice = detayData.urun.benim_fiyatim;
+            const rakipler = detayData.rakipler || [];
+
+            // Gün bazlı (YYYY-MM-DD) tüm benzersiz tarihleri topla ve sırala
+            const dateSet = new Set();
+            rakipler.forEach(function (rakip) {
+                (rakip.kayitlar || []).forEach(function (k) {
+                    if (k.cekilme_zamani) {
+                        dateSet.add(k.cekilme_zamani.slice(0, 10));
+                    }
+                });
+            });
+            const labels = Array.from(dateSet).sort();
+
+            // Her rakip için gün bazlı son fiyatı eşleştir
+            const palette = [
+                { border: "#dc2626", bg: "rgba(220, 38, 38, 0.08)" },
+                { border: "#475569", bg: "rgba(71, 85, 105, 0.08)" },
+                { border: "#0f172a", bg: "rgba(15, 23, 42, 0.08)" }
+            ];
+
+            const datasets = [];
+
+            // 1. Kendi fiyatımız için sabit çizgi
+            datasets.push({
+                label: "Benim Fiyatım (" + myPrice.toFixed(2) + " TL)",
+                data: labels.map(function () { return myPrice; }),
+                borderColor: "#15803d",
+                backgroundColor: "rgba(21, 128, 61, 0.05)",
+                borderWidth: 2.5,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                tension: 0
+            });
+
+            // 2. Her rakip için bir çizgi
+            rakipler.forEach(function (rakip, idx) {
+                const dateMap = {};
+                (rakip.kayitlar || []).forEach(function (k) {
+                    if (k.cekilme_zamani) {
+                        const dayKey = k.cekilme_zamani.slice(0, 10);
+                        dateMap[dayKey] = k.fiyat;
+                    }
+                });
+
+                const color = palette[idx % palette.length];
+                datasets.push({
+                    label: rakip.rakip_adi,
+                    data: labels.map(function (d) {
+                        return dateMap[d] !== undefined ? dateMap[d] : null;
+                    }),
+                    borderColor: color.border,
+                    backgroundColor: color.bg,
+                    borderWidth: 2.5,
+                    pointRadius: 3.5,
+                    pointHoverRadius: 5,
+                    spanGaps: true,
+                    tension: 0.2
+                });
+            });
+
+            const ctx = document.getElementById("priceHistoryChart").getContext("2d");
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: "index",
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: "top"
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const val = context.parsed.y;
+                                    return context.dataset.label + ": " + (val !== null ? val.toFixed(2) + " TL" : "-");
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function (value) {
+                                    return value + " TL";
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
+

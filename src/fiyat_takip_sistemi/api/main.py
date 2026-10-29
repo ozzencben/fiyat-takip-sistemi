@@ -1,6 +1,9 @@
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
@@ -13,6 +16,9 @@ app = FastAPI(
     description="Rakip fiyat karşılaştırma, günlük LLM raporu ve fiyat geçmişi API uç noktaları.",
     version="1.0.0",
 )
+
+TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 def _get_competitor_role_map(db: Session) -> Dict[int, str]:
@@ -59,7 +65,7 @@ def _build_product_comparison_item(
                 PriceSnapshot.competitor_id == match.competitor_id,
                 PriceSnapshot.ham_urun_adi == match.ham_urun_adi,
             )
-            .order_by(desc(PriceSnapshot.id))
+            .order_by(desc(PriceSnapshot.cekilme_zamani), desc(PriceSnapshot.id))
             .first()
         )
         if not latest_snap:
@@ -140,6 +146,52 @@ def _build_product_comparison_item(
         "oneri_notu": oneri_notu,
         "rakip_fiyatlari": competitor_details,
     }
+
+
+@app.get("/", response_class=HTMLResponse, tags=["Web Paneli"])
+def get_dashboard_home(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """
+    Kılavuz Gün 3 (11:00-13:30 Ana sayfa ve ürün tablosu):
+    Üstte 3 özet kutusu, altında günün LLM raporu ve altında arama/filtre destekli
+    ürün karşılaştırma tablosunu gösterir.
+    """
+    ozet_data = get_ozet(db=db)
+    urunler_data = get_urunler(db=db)
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "ozet": ozet_data,
+            "urunler": urunler_data,
+        },
+    )
+
+
+@app.get("/urun/{id}", response_class=HTMLResponse, tags=["Web Paneli"])
+def get_product_detail_page(
+    id: int, request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    """
+    Kılavuz Gün 3 (14:30-17:00 Ürün detay sayfası ve fiyat geçmişi):
+    Ürüne tıklayınca açılan sayfada Chart.js ile her rakip için bir çizgi ve
+    kendi fiyatımız için sabit çizgi içeren 14 günlük fiyat geçmişi grafiğini gösterir.
+    """
+    gecmis_data = get_urun_gecmis(id=id, db=db)
+    product = db.query(Product).filter(Product.id == id).first()
+    competitors_by_id = {c.id: c for c in db.query(Competitor).all()}
+    role_map = _get_competitor_role_map(db)
+    karsilastirma = _build_product_comparison_item(
+        db, product, competitors_by_id, role_map
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="product_detail.html",
+        context={
+            "detay": gecmis_data,
+            "karsilastirma": karsilastirma,
+        },
+    )
 
 
 @app.get("/api/ozet", tags=["API"])
