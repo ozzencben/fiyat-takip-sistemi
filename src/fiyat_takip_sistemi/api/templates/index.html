@@ -64,6 +64,35 @@
             color: var(--text-muted);
         }
 
+        .nav-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-main);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-link-btn:hover {
+            background: var(--gray-bg);
+        }
+
+        .nav-badge {
+            display: inline-block;
+            padding: 0.1rem 0.45rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--red-bg);
+            color: var(--red-text);
+            border: 1px solid var(--red-border);
+        }
+
         /* 1. Üstte 3 Özet Kutusu */
         .summary-grid {
             display: grid;
@@ -349,6 +378,16 @@
             <div>
                 <h1>Fiyat Takip ve Rekabet Paneli</h1>
                 <p>Excel ürün kataloğu ve rakip mağaza fiyatlarının günlük otomatik karşılaştırması</p>
+            </div>
+            <div>
+                <a href="/eslesmeler" class="nav-link-btn">
+                    Eşleşme Onayı
+                    {% if ozet.onay_bekleyen_eslesme_sayisi > 0 %}
+                        <span class="nav-badge">{{ ozet.onay_bekleyen_eslesme_sayisi }} Bekleyen</span>
+                    {% else %}
+                        <span style="color: var(--text-muted); font-weight: 400;">(0)</span>
+                    {% endif %}
+                </a>
             </div>
         </header>
 

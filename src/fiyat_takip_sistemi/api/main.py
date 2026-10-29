@@ -1,8 +1,10 @@
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -10,6 +12,7 @@ from sqlalchemy.orm import Session
 from ..core.db import get_db
 from ..core.models import Competitor, Match, PriceSnapshot, Product
 from ..core.report import get_latest_report_text
+from ..scripts.seed_history import seed_price_history
 
 app = FastAPI(
     title="Fiyat Takip Sistemi - Web Paneli API",
@@ -192,6 +195,178 @@ def get_product_detail_page(
             "karsilastirma": karsilastirma,
         },
     )
+
+
+def _serialize_match_row(
+    db: Session,
+    match: Match,
+    products_by_id: Dict[int, Product],
+    competitors_by_id: Dict[int, Competitor],
+) -> Dict[str, Any]:
+    """Tek bir eşleşme kaydını onay ekranı için zenginleştirir."""
+    prod = products_by_id.get(match.product_id)
+    comp = competitors_by_id.get(match.competitor_id)
+
+    latest_snap = (
+        db.query(PriceSnapshot)
+        .filter(
+            PriceSnapshot.competitor_id == match.competitor_id,
+            PriceSnapshot.ham_urun_adi == match.ham_urun_adi,
+        )
+        .order_by(desc(PriceSnapshot.cekilme_zamani), desc(PriceSnapshot.id))
+        .first()
+    )
+
+    if match.skor >= 80.0:
+        oneri_metni = (
+            f"Öneri: Aynı ürün (Benzerlik %{match.skor:.0f}, alt başlık/kısaltma farkı görünüyor)"
+        )
+    else:
+        oneri_metni = (
+            f"Öneri: Kontrol edin (Benzerlik %{match.skor:.0f}, anahtar kelimeler örtüşüyor)"
+        )
+
+    return {
+        "match_id": match.id,
+        "product_id": match.product_id,
+        "sku": prod.sku if prod else "-",
+        "urun_adi": prod.urun_adi if prod else "Bilinmeyen Ürün",
+        "benim_fiyatim": prod.fiyat if prod else 0.0,
+        "competitor_id": match.competitor_id,
+        "rakip_adi": comp.ad if comp else f"Rakip #{match.competitor_id}",
+        "ham_urun_adi": match.ham_urun_adi,
+        "rakip_fiyat": latest_snap.fiyat if latest_snap else None,
+        "skor": match.skor,
+        "durum": match.durum,
+        "oneri_metni": oneri_metni,
+    }
+
+
+@app.get("/eslesmeler", response_class=HTMLResponse, tags=["Web Paneli"])
+def get_matches_review_page(
+    request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    """
+    Kılavuz Gün 3 (17:00-18:30 Eşleşme onay ekranı):
+    Durumu 'onay_bekliyor' olan eşleşmeleri iki ürün adı yan yana gösterilen
+    bir listede 'Aynı ürün' ve 'Farklı ürün' butonlarıyla sunar.
+    """
+    products_by_id = {p.id: p for p in db.query(Product).all()}
+    competitors_by_id = {c.id: c for c in db.query(Competitor).all()}
+
+    pending_rows = (
+        db.query(Match)
+        .filter(Match.durum == "onay_bekliyor")
+        .order_by(desc(Match.skor), Match.id.asc())
+        .all()
+    )
+    decided_rows = (
+        db.query(Match)
+        .filter(Match.durum.in_(["onayli", "reddedildi"]))
+        .order_by(desc(Match.id))
+        .all()
+    )
+
+    bekleyenler = [
+        _serialize_match_row(db, m, products_by_id, competitors_by_id)
+        for m in pending_rows
+    ]
+    tamamlananlar = [
+        _serialize_match_row(db, m, products_by_id, competitors_by_id)
+        for m in decided_rows
+    ]
+
+    return templates.TemplateResponse(
+        request=request,
+        name="matches.html",
+        context={
+            "bekleyenler": bekleyenler,
+            "tamamlananlar": tamamlananlar,
+        },
+    )
+
+
+@app.post("/eslesmeler/{match_id}/karar", tags=["Web Paneli"])
+async def post_match_decision(
+    match_id: int, request: Request, db: Session = Depends(get_db)
+):
+    """
+    Kılavuz Gün 3 (17:00-18:30 Eşleşme onay ekranı):
+    'Aynı ürün' (onayli) veya 'Farklı ürün' (reddedildi) butonuna basıldığında
+    matches tablosunda durumu günceller.
+    """
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match:
+        raise HTTPException(
+            status_code=404, detail=f"ID={match_id} olan eşleşme bulunamadı."
+        )
+
+    raw_body = (await request.body()).decode("utf-8", errors="replace").strip()
+    karar_val = ""
+    content_type = request.headers.get("content-type", "")
+
+    if "application/json" in content_type and raw_body:
+        try:
+            body_json = json.loads(raw_body)
+            karar_val = str(body_json.get("karar", "")).strip().lower()
+        except Exception:
+            karar_val = ""
+    else:
+        parsed_form = parse_qs(raw_body)
+        karar_val = parsed_form.get("karar", [""])[0].strip().lower()
+
+    if karar_val in ("onayli", "ayni", "same", "approve"):
+        match.durum = "onayli"
+    elif karar_val in ("reddedildi", "farkli", "different", "reject"):
+        match.durum = "reddedildi"
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Geçersiz karar değeri. 'onayli' veya 'reddedildi' olmalıdır.",
+        )
+
+    db.commit()
+
+    # Onaylanan eşleşmenin 14 günlük örnek geçmişini de tamamla
+    if match.durum == "onayli":
+        seed_price_history(db, days=14)
+
+    if "application/json" in content_type:
+        return {"ok": True, "match_id": match.id, "yeni_durum": match.durum}
+
+    return RedirectResponse(url="/eslesmeler", status_code=303)
+
+
+@app.get("/api/eslesmeler", tags=["API"])
+def get_api_eslesmeler(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Onay bekleyen ve manuel karar verilmiş eşleşmeleri JSON olarak döndürür."""
+    products_by_id = {p.id: p for p in db.query(Product).all()}
+    competitors_by_id = {c.id: c for c in db.query(Competitor).all()}
+
+    pending_rows = (
+        db.query(Match)
+        .filter(Match.durum == "onay_bekliyor")
+        .order_by(desc(Match.skor), Match.id.asc())
+        .all()
+    )
+    decided_rows = (
+        db.query(Match)
+        .filter(Match.durum.in_(["onayli", "reddedildi"]))
+        .order_by(desc(Match.id))
+        .all()
+    )
+
+    return {
+        "bekleyen_sayisi": len(pending_rows),
+        "bekleyenler": [
+            _serialize_match_row(db, m, products_by_id, competitors_by_id)
+            for m in pending_rows
+        ],
+        "tamamlananlar": [
+            _serialize_match_row(db, m, products_by_id, competitors_by_id)
+            for m in decided_rows
+        ],
+    }
 
 
 @app.get("/api/ozet", tags=["API"])

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eşleşme Onay Ekranı - Fiyat Takip Paneli</title>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --red-text: #b91c1c;
+            --green-bg: #f0fdf4;
+            --green-border: #bbf7d0;
+            --green-text: #15803d;
+            --gray-bg: #f1f5f9;
+            --gray-border: #cbd5e1;
+            --gray-text: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 1.75rem 1.25rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+            text-decoration: underline;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        header p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .count-badge {
+            background: var(--gray-bg);
+            color: var(--text-main);
+            border: 1px solid var(--gray-border);
+            padding: 0.4rem 0.85rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        thead th {
+            background: var(--gray-bg);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .product-title {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9375rem;
+        }
+
+        .product-meta {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--gray-bg);
+            color: var(--text-main);
+            border: 1px solid var(--gray-border);
+        }
+
+        .ai-suggestion {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn {
+            padding: 0.45rem 0.85rem;
+            border-radius: 0.375rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: opacity 0.15s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-approve {
+            background-color: var(--green-bg);
+            color: var(--green-text);
+            border-color: var(--green-border);
+        }
+
+        .btn-reject {
+            background-color: var(--red-bg);
+            color: var(--red-text);
+            border-color: var(--red-border);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-green {
+            background: var(--green-bg);
+            color: var(--green-text);
+            border: 1px solid var(--green-border);
+        }
+
+        .badge-red {
+            background: var(--red-bg);
+            color: var(--red-text);
+            border: 1px solid var(--red-border);
+        }
+
+        .empty-state {
+            padding: 2.25rem 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Ürün Tablosuna Dön</a>
+
+        <header>
+            <div>
+                <h1>Eşleşme Onay Ekranı</h1>
+                <p>Benzerlik skoru %70–89 arasında kalan aday eşleşmeleri inceleyip onaylayın veya reddedin. Yapay zeka karar vermez; son kontrol sizdedir.</p>
+            </div>
+            <span class="count-badge" id="pendingCountBadge">{{ bekleyenler|length }} Onay Bekleyen Eşleşme</span>
+        </header>
+
+        <!-- Onay Bekleyen Eşleşmeler -->
+        <section class="card">
+            <div class="card-header">
+                <span>Onay Bekleyen Ürün Eşleşmeleri (Skor: %70 – %89)</span>
+            </div>
+
+            {% if bekleyenler %}
+            <div class="table-wrapper">
+                <table id="pendingMatchesTable">
+                    <thead>
+                        <tr>
+                            <th>Bizim Ürünümüz (Excel)</th>
+                            <th>Rakip Mağaza Ürünü</th>
+                            <th>Benzerlik &amp; Öneri</th>
+                            <th>Kararınız</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in bekleyenler %}
+                        <tr id="match-row-{{ m.match_id }}">
+                            <td>
+                                <span class="product-title">{{ m.urun_adi }}</span>
+                                <span class="product-meta">SKU: {{ m.sku }} | Bizim Fiyatımız: {{ "%.2f"|format(m.benim_fiyatim) }} TL</span>
+                            </td>
+                            <td>
+                                <span class="product-title">{{ m.ham_urun_adi }}</span>
+                                <span class="product-meta">
+                                    {{ m.rakip_adi }}
+                                    {% if m.rakip_fiyat is not none %}
+                                        | Rakip Fiyatı: <strong>{{ "%.2f"|format(m.rakip_fiyat) }} TL</strong>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="score-badge">Benzerlik: %{{ "%.0f"|format(m.skor) }}</span>
+                                <span class="ai-suggestion">{{ m.oneri_metni }}</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <form method="post" action="/eslesmeler/{{ m.match_id }}/karar" style="display:inline;">
+                                        <input type="hidden" name="karar" value="onayli">
+                                        <button type="submit" class="btn btn-approve">Aynı ürün</button>
+                                    </form>
+                                    <form method="post" action="/eslesmeler/{{ m.match_id }}/karar" style="display:inline;">
+                                        <input type="hidden" name="karar" value="reddedildi">
+                                        <button type="submit" class="btn btn-reject">Farklı ürün</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                Şu anda onay bekleyen eşleşme bulunmuyor. Tüm aday eşleşmeler incelendi.
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Manuel İncelenmiş (Onaylanan / Reddedilen) Eşleşmeler -->
+        {% if tamamlananlar %}
+        <section class="card">
+            <div class="card-header">
+                <span>Senin Tarafından Karar Verilen Eşleşmeler ({{ tamamlananlar|length }})</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bizim Ürünümüz</th>
+                            <th>Rakip Mağaza Ürünü</th>
+                            <th>Skor</th>
+                            <th>Verilen Karar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in tamamlananlar %}
+                        <tr>
+                            <td>
+                                <a href="/urun/{{ m.product_id }}" class="product-title" style="text-decoration:none;">{{ m.urun_adi }}</a>
+                                <span class="product-meta">SKU: {{ m.sku }}</span>
+                            </td>
+                            <td>
+                                <span class="product-title">{{ m.ham_urun_adi }}</span>
+                                <span class="product-meta">
+                                    {{ m.rakip_adi }}
+                                    {% if m.rakip_fiyat is not none %}
+                                        | {{ "%.2f"|format(m.rakip_fiyat) }} TL
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>%{{ "%.0f"|format(m.skor) }}</td>
+                            <td>
+                                {% if m.durum == "onayli" %}
+                                    <span class="status-badge badge-green">ONAYLANDI (Aynı ürün)</span>
+                                {% else %}
+                                    <span class="status-badge badge-red">REDDEDİLDİ (Farklı ürün)</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</body>
+</html>
